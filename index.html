@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #2d3748;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .interval-settings {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .interval-settings label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .interval-settings input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: 'Courier New', monospace;
+            width: 140px;
+            min-width: 120px;
+        }
+
+        @media (max-width: 350px) {
+            .interval-settings input {
+                width: 120px;
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+            
+            .info-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 0.8rem;
+            }
+            
+            button {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .interval-settings input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .help-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .help-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .cron-help {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .cron-help h4 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .help-examples div {
+            margin: 8px 0;
+            color: #4a5568;
+        }
+
+        .help-examples code {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            color: #667eea;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .toggle-btn.running {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+
+        .toggle-btn.running:hover {
+            box-shadow: 0 10px 25px rgba(245, 101, 101, 0.4);
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .stop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 101, 101, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #a0aec0, #718096);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(160, 174, 192, 0.4);
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .status.running {
+            background: rgba(72, 187, 120, 0.1);
+            color: #38a169;
+            border: 2px solid rgba(72, 187, 120, 0.3);
+        }
+
+        .status.stopped {
+            background: rgba(160, 174, 192, 0.1);
+            color: #718096;
+            border: 2px solid rgba(160, 174, 192, 0.3);
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Chronos</h1>
+        
+        <div class="timer-display" id="display">00:00:00</div>
+        
+        <div class="controls">
+            <div class="interval-settings">
+                <input type="text" id="cronExpression" value="*/15 * * * *" placeholder="*/15 * * * *">
+                <button type="button" class="info-btn" onclick="toggleHelp()">?</button>
+            </div>
+            
+            <div class="help-panel" id="helpPanel" style="display: none;">
+                <div class="help-content">
+                    <strong>Cron Format:</strong> minute hour day month weekday<br>
+                    <small>Use * for any value, */N for every N units</small>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="toggleBtn" class="toggle-btn" onclick="toggleTimer()">Start</button>
+            </div>
+        </div>
+        
+        <div class="status stopped" id="status">Timer Stopped</div>
+        
+
+    </div>
+
+    <script>
+        // Remove unused variables and functions
+        let cronInterval = null;
+        let isRunning = false;
+        let nextRingTime = null;
+        let cronExpression = '';
+        let timerInterval = null;
+
+        // Cron parser - simplified for basic patterns
+        function parseCronExpression(expression) {
+            const parts = expression.trim().split(/\s+/);
+            if (parts.length !== 5) {
+                throw new Error('Cron expression must have 5 parts: minute hour day month weekday');
+            }
+            
+            return {
+                minute: parts[0],
+                hour: parts[1],
+                day: parts[2],
+                month: parts[3],
+                weekday: parts[4]
+            };
+        }
+
+        function matchesCronPart(value, pattern, max) {
+            if (pattern === '*') return true;
+            if (pattern.includes('/')) {
+                const [base, step] = pattern.split('/');
+                if (base === '*') {
+                    return value % parseInt(step) === 0;
+                }
+            }
+            if (pattern.includes('-')) {
+                const [start, end] = pattern.split('-').map(Number);
+                return value >= start && value <= end;
+            }
+            if (pattern.includes(',')) {
+                return pattern.split(',').map(Number).includes(value);
+            }
+            return parseInt(pattern) === value;
+        }
+
+        function getNextCronExecution(cronExpr) {
+            try {
+                const cron = parseCronExpression(cronExpr);
+                const now = new Date();
+                const next = new Date(now);
+                
+                // For simplicity, handle basic interval patterns like */N * * * *
+                if (cron.minute.startsWith('*/')) {
+                    const interval = parseInt(cron.minute.substring(2));
+                    const currentMinute = now.getMinutes();
+                    const nextMinute = Math.ceil((currentMinute + 1) / interval) * interval;
+                    
+                    if (nextMinute >= 60) {
+                        next.setHours(next.getHours() + 1);
+                        next.setMinutes(nextMinute - 60);
+                    } else {
+                        next.setMinutes(nextMinute);
+                    }
+                    next.setSeconds(0);
+                    next.setMilliseconds(0);
+                    return next;
+                }
+                
+                // Handle hourly pattern like 0 * * * *
+                if (cron.minute === '0' && cron.hour === '*') {
+                    next.setHours(next.getHours() + 1);
+                    next.setMinutes(0);
+                    next.setSeconds(0);
+                    next.setMilliseconds(0);
+                    return next;
+                }
+                
+                // Handle specific time patterns like 30 9 * * *
+                if (!cron.minute.includes('*') && !cron.hour.includes('*')) {
+                    const targetMinute = parseInt(cron.minute);
+                    const targetHour = parseInt(cron.hour);
+                    
+                    next.setHours(targetHour);
+                    next.setMinutes(targetMinute);
+                    next.setSeconds(0);
+                    next.setMilliseconds(0);
+                    
+                    if (next <= now) {
+                        next.setDate(next.getDate() + 1);
+                    }
+                    return next;
+                }
+                
+                // Default fallback - every 5 minutes
+                next.setMinutes(now.getMinutes() + 5);
+                next.setSeconds(0);
+                next.setMilliseconds(0);
+                return next;
+                
+            } catch (error) {
+                throw new Error(`Invalid cron expression: ${error.message}`);
+            }
+        }
+
+        function scheduleNextRing() {
+            if (cronInterval) {
+                clearTimeout(cronInterval);
+            }
+            
+            try {
+                nextRingTime = getNextCronExecution(cronExpression);
+                const timeUntilRing = nextRingTime.getTime() - Date.now();
+                
+                if (timeUntilRing > 0) {
+                    cronInterval = setTimeout(() => {
+                        ring();
+                        scheduleNextRing(); // Schedule the next one
+                    }, timeUntilRing);
+                }
+                
+                updateNextRingDisplay();
+            } catch (error) {
+                addLogEntry(`Error: ${error.message}`);
+            }
+        }
+
+        function updateNextRingDisplay() {
+            const status = document.getElementById('status');
+            if (isRunning && nextRingTime) {
+                const timeUntil = nextRingTime.getTime() - Date.now();
+                const minutes = Math.floor(timeUntil / 60000);
+                const seconds = Math.floor((timeUntil % 60000) / 1000);
+                
+                if (timeUntil > 0) {
+                    status.textContent = `Next ring: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    status.textContent = 'Ring due now!';
+                }
+            }
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function updateToggleButton() {
+            const toggleBtn = document.getElementById('toggleBtn');
+            if (isRunning) {
+                toggleBtn.textContent = 'Stop';
+                toggleBtn.className = 'stop-btn';
+            } else {
+                toggleBtn.textContent = 'Start';
+                toggleBtn.className = 'start-btn';
+            }
+        }
+
+        function updateDisplay() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            const display = document.getElementById('display');
+            display.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function addLogEntry(message) {
+            // Log entries removed - keeping function for compatibility
+            console.log(`${new Date().toLocaleTimeString()} - ${message}`);
+        }
+
+        function ring() {
+            // Create audio beeps - multiple beeps for 5 seconds
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create 5 beeps over 5 seconds
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 1000); // Beep every second for 5 seconds
+            }
+
+            addLogEntry('Ring triggered');
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            
+            const cronExpr = document.getElementById('cronExpression').value.trim();
+            
+            if (!cronExpr) {
+                alert('Please enter a cron expression');
+                return;
+            }
+
+            try {
+                // Validate cron expression
+                getNextCronExecution(cronExpr);
+                cronExpression = cronExpr;
+            } catch (error) {
+                alert(`Invalid cron expression: ${error.message}`);
+                return;
+            }
+
+            isRunning = true;
+            updateToggleButton();
+            
+            // Update clock display
+            timerInterval = setInterval(() => {
+                updateDisplay();
+                updateNextRingDisplay();
+            }, 1000);
+            
+            // Schedule first ring
+            scheduleNextRing();
+            
+            document.getElementById('status').className = 'status running';
+            
+            addLogEntry(`Timer started with cron: ${cronExpression}`);
+        }
+
+        function stopTimer() {
+            if (!isRunning) return;
+            
+            isRunning = false;
+            updateToggleButton();
+            clearInterval(timerInterval);
+            clearTimeout(cronInterval);
+            nextRingTime = null;
+            
+            document.getElementById('status').textContent = 'Timer Stopped';
+            document.getElementById('status').className = 'status stopped';
+            
+            addLogEntry('Timer stopped');
+        }
+
+        function updateToggleButton() {
+            const toggleBtn = document.getElementById('toggleBtn');
+            if (isRunning) {
+                toggleBtn.textContent = 'Stop';
+                toggleBtn.className = 'toggle-btn running';
+            } else {
+                toggleBtn.textContent = 'Start';
+                toggleBtn.className = 'toggle-btn';
+            }
+        }
+
+        function toggleHelp() {
+            const helpPanel = document.getElementById('helpPanel');
+            if (helpPanel.style.display === 'none') {
+                helpPanel.style.display = 'block';
+            } else {
+                helpPanel.style.display = 'none';
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+            updateDisplay();
+            updateToggleButton();
+            
+            addLogEntry('Timer reset');
+        }
+
+        // Initialize display and start clock
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
+        updateToggleButton();
+    </script>
+</body>
+</html>
